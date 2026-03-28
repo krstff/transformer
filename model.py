@@ -19,6 +19,9 @@ class FeedForward(nn.Module):
         return y
 
 class MSMAttention(nn.Module):
+    # https://www.geeksforgeeks.org/nlp/multi-head-attention-mechanism/
+    # https://github.com/karpathy/minGPT/blob/master/mingpt/model.py
+
     def __init__(self, input_dim, num_embed, num_heads):
         super().__init__()
         self.num_heads = num_heads
@@ -55,7 +58,7 @@ class MSMAttention(nn.Module):
         e = e / math.sqrt(k.size(-1))
 
         # Mask the lower triangle and compute softmax
-        a = a.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+        a = a.masked_fill(self.mask[:,:,:T,:T] == 0, float('-inf'))
         a = e.softmax(a, dim=-1)
         a = self.a_dropout(a)
 
