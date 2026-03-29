@@ -67,7 +67,7 @@ class MSMAttention(nn.Module):
 
         y = a @ v
         # merge heads together
-        y = y.rearrange(y, 'b h t d -> b t (h d)')
+        y = rearrange(y, 'b h t d -> b t (h d)')
 
         y = self.linear(y)
         y = self.resid_dropout(y)
@@ -131,7 +131,7 @@ class GPT2(nn.Module):
         self.lm_head = nn.Linear(config.EMBED_SIZE, config.VOCAB_SIZE)
     
     def forward(self, idx):
-        B, T = idx.size()
+        _, T = idx.size()
         # token embedding
         tok_emb = self.token_embed(idx) 
 
