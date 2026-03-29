@@ -74,6 +74,21 @@ class MSMAttention(nn.Module):
 
         return y
 
+class LayerNorm(nn.Module):
+    def __init__(self, embed_dim, eps=1e-5):
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(embed_dim))
+        self.bias = nn.Parameter(torch.zeros(embed_dim))
+
+    def forward(self, x):        
+        # Calculate mean and variance across the last dimension
+        mean = x.mean(dim=-1, keepdim=True)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)
+        
+        # normalize and apply scale/shift
+        x_norm = (x - mean) / torch.sqrt(var + self.eps)
+        return self.weight * x_norm + self.bias
 
 
 
