@@ -90,6 +90,29 @@ class LayerNorm(nn.Module):
         x_norm = (x - mean) / torch.sqrt(var + self.eps)
         return self.weight * x_norm + self.bias
 
+class TransformerBlock(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # both attn and mlp already have residual dropout
+        self.attn = MSMAttention(config.EMBED_SIZE, config.NUM_HEADS)
+        self.mlp = FeedForward(config.EMBED_SIZE)
+        self.lnorm1 = LayerNorm(config.EMBED_SIZE)
+        self.lnorm2 = LayerNorm(config.EMBED_SIZE)
+    
+    def forward(self, x):
+        # using pre-LN https://sushant-kumar.com/blog/normalization-in-transformer-based-llms
+        a = self.attn(self.lnorm1(x))
+        # residual connection
+        y = x + a
+
+        # pre-LN + feedforward
+        f = self.mlp(self.lnorm2(y))
+        # residual connection
+        out = x + f
+
+        return out
+
+
 
 
 
