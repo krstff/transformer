@@ -58,8 +58,8 @@ class MSMAttention(nn.Module):
         e = e / math.sqrt(k.size(-1))
 
         # Mask the lower triangle and compute softmax
-        a = a.masked_fill(self.mask[:,:,:T,:T] == 0, float('-inf'))
-        a = e.softmax(a, dim=-1)
+        e = e.masked_fill(self.mask[:,:,:T,:T] == 0, float('-inf'))
+        a = e.softmax(dim=-1)
         a = self.a_dropout(a)
 
         y = a @ v
