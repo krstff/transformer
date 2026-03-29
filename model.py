@@ -112,6 +112,45 @@ class TransformerBlock(nn.Module):
 
         return out
 
+class GPT2(nn.Module):
+    # https://github.com/karpathy/minGPT/blob/master/mingpt/model.py
+    # https://medium.com/@vipul.koti333/from-theory-to-code-step-by-step-implementation-and-code-breakdown-of-gpt-2-model-7bde8d5cecd
+
+    def __init__(self):
+        super().__init__()
+        self.token_embed = nn.Embedding(config.VOCAB_SIZE, config.EMBED_SIZE)
+        # (Max Sequence Length -> Embed Size)
+        self.pos_embed = nn.Embedding(config.BLOCK_SIZE, config.EMBED_SIZE)
+        self.embed_dropout = nn.Dropout(config.RESID_DROP)
+
+        # Repeating transformer blocks
+        self.blocks = nn.ModuleList([TransformerBlock() for _ in range(config.NUM_LAYERS)])
+
+        self.lnorm = LayerNorm(config.EMBED_SIZE)
+        # Final projection to vocab size for word predictions
+        self.lm_head = nn.Linear(config.EMBED_SIZE, config.VOCAB_SIZE)
+    
+    def forward(self, idx):
+        B, T = idx.size()
+        # token embedding
+        tok_emb = self.token_embed(idx) 
+
+        device = idx.device
+        # creates [0, 1, 2, ..., T-1] - used for position embedding
+        pos = torch.arange(0, T, dtype=torch.long, device=device)
+        pos_emb = self.pos_embed(pos)
+
+        # add position to token embedding and apply dropout
+        x = self.embed_dropout(tok_emb + pos_emb)
+
+        # pass through transformer blocks
+        for block in self.blocks:
+            x = block(x)
+        x = self.lnorm(x)
+
+        # get next word logits
+        logits = self.lm_head(x)
+        return logits
 
 
 
