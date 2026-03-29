@@ -5,18 +5,21 @@ from einops import rearrange
 import config
 
 class FeedForward(nn.Module):
-    def __init__(self, input_dim, num_neurons):
+    def __init__(self, embed_dim):
         super().__init__()
-        self.linear = nn.Linear(input_dim, num_neurons)
-        self.activaiton = nn.GELU()
+        # expand dimension
+        self.d_exp    = nn.Linear(embed_dim, 4 * embed_dim)
+        self.act     = nn.GELU()
+        # reduce dimension back
+        self.d_red  = nn.Linear(4 * embed_dim, embed_dim)
+        self.dropout = nn.Dropout(config.RESID_DROP)
     
     def forward(self, x):
-        # xi = x * W + b
-        y = self.linear(x)
-        # y = σ(xi)
-        y = self.activaiton(y)
-
-        return y
+        x = self.d_exp(x)
+        x = self.act(x)
+        x = self.d_red(x)
+        x = self.dropout(x)
+        return x
 
 class MSMAttention(nn.Module):
     # https://www.geeksforgeeks.org/nlp/multi-head-attention-mechanism/
