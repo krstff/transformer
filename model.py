@@ -108,7 +108,7 @@ class TransformerBlock(nn.Module):
         # pre-LN + feedforward
         f = self.mlp(self.lnorm2(y))
         # residual connection
-        out = x + f
+        out = y + f
 
         return out
 
