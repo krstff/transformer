@@ -25,10 +25,10 @@ class MSMAttention(nn.Module):
     # https://www.geeksforgeeks.org/nlp/multi-head-attention-mechanism/
     # https://github.com/karpathy/minGPT/blob/master/mingpt/model.py
 
-    def __init__(self, input_dim, num_embed, num_heads):
+    def __init__(self, embed_size, num_heads):
         super().__init__()
         self.num_heads = num_heads
-        self.head_dim = num_embed // num_heads
+        self.head_dim = embed_size // num_heads
 
         # Create mask for masked attention, registered as buffer as this is not a learnable parameter
         self.register_buffer("mask", torch.tril(torch.ones(config.BLOCK_SIZE, config.BLOCK_SIZE))
@@ -36,8 +36,8 @@ class MSMAttention(nn.Module):
 
         # Projection for calculating Q K V
         # could also be three different projections (=> num_embed * 3)
-        self.qkv = nn.Linear(input_dim, num_embed * 3)
-        self.linear = nn.Linear(input_dim, num_embed)
+        self.qkv = nn.Linear(embed_size, embed_size * 3)
+        self.linear = nn.Linear(embed_size, embed_size)
 
         # Dropout for the attention layer (is disabled during model.Eval())
         self.a_dropout = nn.Dropout(config.ATTENTION_DROP)
@@ -89,6 +89,8 @@ class LayerNorm(nn.Module):
         # normalize and apply scale/shift
         x_norm = (x - mean) / torch.sqrt(var + self.eps)
         return self.weight * x_norm + self.bias
+
+
 
 
 
