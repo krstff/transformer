@@ -151,6 +151,26 @@ class GPT2(nn.Module):
         # get next word logits
         logits = self.lm_head(x)
         return logits
+    
+    # PyTorch will not track gradients for generation
+    @torch.no_grad() 
+    def generate(self, idx, max_new_tokens):
+        for _ in range(max_new_tokens):
+            # crop context to BLOCK_SIZE -- eg. context window
+            idx_cond = idx[:, -config.BLOCK_SIZE:]
+            
+            logits = self(idx_cond)
+            
+            # multiple predictions get made, we only care about the last new -- eg. the new word
+            # fixed by KV-caching
+            logits = logits[:, -1, :]
+            probs = torch.nn.functional.softmax(logits, dim=-1)
+            
+            # sample from the distribution
+            idx_next = torch.multinomial(probs, num_samples=1)
+            idx = torch.cat((idx, idx_next), dim=1)
+            
+        return idx
 
 
 
