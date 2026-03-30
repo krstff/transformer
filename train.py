@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from model import GPT2
 from dataset import DataHandler, LanceDataHandler, PreTokenizedLanceDataHandler
 import config
+import torch.nn as nn
 
 
 class Trainer():
@@ -18,6 +19,11 @@ class Trainer():
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         model = GPT2(self.data_handler.get_vocab_size()).to(device)
+
+        if torch.cuda.device_count() > 1:
+            print(f"Using {torch.cuda.device_count()} GPUs!")
+            model = nn.DataParallel(model)
+
         optimizer = torch.optim.AdamW(model.parameters(), lr=config.LEARNING_RATE)
 
         print("Starting training...")

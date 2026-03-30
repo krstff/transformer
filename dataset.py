@@ -100,21 +100,23 @@ class PreTokenizedLanceDataHandler:
         all_tokens = []
         
         for batch in self.ds.scanner(columns=[self.col_name]).to_batches():
-            nested_lists = batch[self.col_name].to_pylist()
+            batch_data = batch[self.col_name].to_pylist()
             
-            for doc_tokens in nested_lists:
-                # If the dataset has documents separated, we can optionally add an 
-                # <|endoftext|> token here, which for GPT-2 is 50256.
-                all_tokens.extend(doc_tokens)
-                all_tokens.append(50256) # GPT-2 End-of-Document token
+            if len(batch_data) == 0:
+                continue
                 
-                if len(all_tokens) >= max_tokens:
-                    break
-                    
+            if isinstance(batch_data[0], int):
+                all_tokens.extend(batch_data)
+                
+            elif isinstance(batch_data[0], list):
+                for doc_tokens in batch_data:
+                    all_tokens.extend(doc_tokens)
+                    all_tokens.append(50256) # Add the End-Of-Text token between docs
+            
+            # Stop if we hit our memory safety limit
             if len(all_tokens) >= max_tokens:
                 print(f"Reached {max_tokens:,} token limit. Stopping extraction.")
                 break
-
         self.data = torch.tensor(all_tokens[:max_tokens], dtype=torch.long)
         print(f"Dataset successfully loaded! Total tokens ready for training: {len(self.data):,}")
 

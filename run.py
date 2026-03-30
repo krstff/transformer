@@ -4,7 +4,7 @@ from model import GPT2
 import config
 
 def train(filename, tokenizer):
-    trainer = Trainer(filename, tokenizer)
+    trainer = Trainer(filename, tokenizer, True, True)
     trainer.train()
 
 def load_model(vocab_size, filename) -> GPT2:
@@ -29,5 +29,5 @@ if __name__ == "__main__":
     tokenizer = tiktoken.get_encoding("gpt2")
     # model = load_model(tokenizer.n_vocab, 'data/my_model.pth')
     # generate(model, tokenizer, "Romeo looked at")
-    train('/data/openwebtext_1M.lance/', tokenizer)
+    train('data/openwebtext_1M.lance/', tokenizer)
 
