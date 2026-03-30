@@ -1,13 +1,16 @@
 import torch
 import torch.nn.functional as F
 from model import GPT2
-from dataset import DataHandler
+from dataset import DataHandler, LanceDataHandler
 import config
 
 
 class Trainer():
-    def __init__(self, filename, tokenizer):
-        self.data_handler = DataHandler(filename, tokenizer)
+    def __init__(self, filename, tokenizer, is_lance):
+        if is_lance:
+            self.data_handler = LanceDataHandler(filename, tokenizer)
+        else:
+            self.data_handler = DataHandler(filename, tokenizer)
 
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
