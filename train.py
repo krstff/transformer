@@ -6,8 +6,8 @@ import config
 
 
 class Trainer():
-    def __init__(self):
-        self.data_handler = DataHandler('data/input.txt')
+    def __init__(self, filename, tokenizer):
+        self.data_handler = DataHandler(filename, tokenizer)
 
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

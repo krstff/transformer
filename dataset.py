@@ -4,11 +4,11 @@ import tiktoken
 
 
 class DataHandler():
-    def __init__(self, filename):
+    def __init__(self, filename, tokenizer):
         with open(filename, 'r', encoding='utf-8') as f:
             text = f.read()
 
-        self.enc = tiktoken.get_encoding("gpt2")
+        self.enc = tokenizer
         self.data = torch.tensor(self.enc.encode(text), dtype=torch.long)
 
     def get_batch(self):
