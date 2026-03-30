@@ -6,7 +6,7 @@ import config
 
 
 class Trainer():
-    def __init__(self, filename, tokenizer, is_lance):
+    def __init__(self, filename, tokenizer, is_lance=False):
         if is_lance:
             self.data_handler = LanceDataHandler(filename, tokenizer)
         else:
@@ -38,4 +38,4 @@ class Trainer():
             if step % 100 == 0:
                 print(f"Step {step} | Loss: {loss.item():.4f}")
 
-        torch.save(model.state_dict(), 'my_model.pth')
+        torch.save(model.state_dict(), 'data/my_model.pth')

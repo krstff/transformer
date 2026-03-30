@@ -81,3 +81,48 @@ class LanceDataHandler:
 
     def get_vocab_size(self):
         return self.enc.n_vocab
+
+class PreTokenizedLanceDataHandler:
+    def __init__(self, path, tokenizer, max_tokens=5_000_000):
+        self.enc = tokenizer         
+        self.ds = lance.dataset(path)
+        
+        col_names = self.ds.schema.names
+        if 'tokens' in col_names: self.col_name = 'tokens'
+        elif 'input_ids' in col_names: self.col_name = 'input_ids'
+        elif 'ids' in col_names: self.col_name = 'ids'
+        else:
+            self.col_name = [n for n in col_names if n not in ['id', 'url']][0]
+            
+        print(f"Auto-detected token column: '{self.col_name}'")
+        print("Streaming raw integers into memory...")
+        
+        all_tokens = []
+        
+        for batch in self.ds.scanner(columns=[self.col_name]).to_batches():
+            nested_lists = batch[self.col_name].to_pylist()
+            
+            for doc_tokens in nested_lists:
+                # If the dataset has documents separated, we can optionally add an 
+                # <|endoftext|> token here, which for GPT-2 is 50256.
+                all_tokens.extend(doc_tokens)
+                all_tokens.append(50256) # GPT-2 End-of-Document token
+                
+                if len(all_tokens) >= max_tokens:
+                    break
+                    
+            if len(all_tokens) >= max_tokens:
+                print(f"Reached {max_tokens:,} token limit. Stopping extraction.")
+                break
+
+        self.data = torch.tensor(all_tokens[:max_tokens], dtype=torch.long)
+        print(f"Dataset successfully loaded! Total tokens ready for training: {len(self.data):,}")
+
+    def get_batch(self):
+        ix = torch.randint(len(self.data) - config.BLOCK_SIZE, (config.BATCH_SIZE,))
+        x = torch.stack([self.data[i:i+config.BLOCK_SIZE] for i in ix])
+        y = torch.stack([self.data[i+1:i+config.BLOCK_SIZE+1] for i in ix])
+        return x, y
+
+    def get_vocab_size(self):
+        return self.enc.n_vocab
