@@ -116,9 +116,9 @@ class GPT2(nn.Module):
     # https://github.com/karpathy/minGPT/blob/master/mingpt/model.py
     # https://medium.com/@vipul.koti333/from-theory-to-code-step-by-step-implementation-and-code-breakdown-of-gpt-2-model-7bde8d5cecd
 
-    def __init__(self):
+    def __init__(self, VOCAB_SIZE):
         super().__init__()
-        self.token_embed = nn.Embedding(config.VOCAB_SIZE, config.EMBED_SIZE)
+        self.token_embed = nn.Embedding(VOCAB_SIZE, config.EMBED_SIZE)
         # (Max Sequence Length -> Embed Size)
         self.pos_embed = nn.Embedding(config.BLOCK_SIZE, config.EMBED_SIZE)
         self.embed_dropout = nn.Dropout(config.RESID_DROP)
@@ -128,7 +128,7 @@ class GPT2(nn.Module):
 
         self.lnorm = LayerNorm(config.EMBED_SIZE)
         # Final projection to vocab size for word predictions
-        self.lm_head = nn.Linear(config.EMBED_SIZE, config.VOCAB_SIZE)
+        self.lm_head = nn.Linear(config.EMBED_SIZE, VOCAB_SIZE)
     
     def forward(self, idx):
         _, T = idx.size()
