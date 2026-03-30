@@ -1,13 +1,15 @@
 import torch
 import torch.nn.functional as F
 from model import GPT2
-from dataset import DataHandler, LanceDataHandler
+from dataset import DataHandler, LanceDataHandler, PreTokenizedLanceDataHandler
 import config
 
 
 class Trainer():
-    def __init__(self, filename, tokenizer, is_lance=False):
-        if is_lance:
+    def __init__(self, filename, tokenizer, is_lance=False, is_pretokenized=False):
+        if is_pretokenized:
+            self.data_handler = PreTokenizedLanceDataHandler(filename, tokenizer)
+        elif is_lance:
             self.data_handler = LanceDataHandler(filename, tokenizer)
         else:
             self.data_handler = DataHandler(filename, tokenizer)
