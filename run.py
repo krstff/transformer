@@ -28,6 +28,6 @@ def generate(model, tokenizer, prompt="", max_tokens=50):
 if __name__ == "__main__":
     tokenizer = tiktoken.get_encoding("gpt2")
     # model = load_model(tokenizer.n_vocab, 'data/my_model_openweb2.pth')
-    # generate(model, tokenizer, "Hello")
+    # generate(model, tokenizer, "There is no way")
     train('data/openwebtext_1M.lance/', tokenizer)
 

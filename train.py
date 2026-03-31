@@ -27,10 +27,12 @@ class Trainer():
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         model = GPT2(self.vocab_size).to(device)
+        total_params = sum(p.numel() for p in model.parameters())
+        print(f"Total model parameters: {total_params:,}")
 
-        if torch.cuda.device_count() > 1:
-            print(f"Using {torch.cuda.device_count()} GPUs!")
-            model = nn.DataParallel(model)
+        # if torch.cuda.device_count() > 1:
+            # print(f"Using {torch.cuda.device_count()} GPUs!")
+            # model = nn.DataParallel(model)
 
         optimizer = torch.optim.AdamW(model.parameters(), lr=config.LEARNING_RATE)
         dataloader_iter = iter(self.dataloader) if hasattr(self, 'dataloader') else None
@@ -46,7 +48,7 @@ class Trainer():
         last_100_time = start_time
 
         print("Starting training...")
-        while step < config.STEPS:
+        while step <= config.STEPS:
             # using lance loader
             if hasattr(self, 'dataloader'):
                 try:
@@ -74,9 +76,10 @@ class Trainer():
             
             optimizer.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
 
-            if step % 20 == 0:
+            if step % 50 == 0:
                 tracked_losses.append(loss.item())
                 tracked_steps.append(step)
 
