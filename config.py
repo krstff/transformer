@@ -1,10 +1,10 @@
 # Standard GPT2 hyperparameters
-BATCH_SIZE = 8
-BLOCK_SIZE = 512      # Maximum context length (sequence length)
-EMBED_SIZE = 768      # Dimensionality of the embeddings
-NUM_HEADS = 12        # Number of attention heads
-NUM_LAYERS = 12       # Number of transformer blocks
-ATTENTION_DROP = 0.1
-RESID_DROP = 0.1
+BATCH_SIZE = 32
+BLOCK_SIZE = 256      # Maximum context length (sequence length)
+EMBED_SIZE = 384      # Dimensionality of the embeddings
+NUM_HEADS = 6         # Number of attention heads
+NUM_LAYERS = 6        # Number of transformer blocks
+ATTENTION_DROP = 0.0
+RESID_DROP = 0.0
 LEARNING_RATE = 3e-4
-STEPS = 5000
+STEPS = 500
