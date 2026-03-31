@@ -7,6 +7,7 @@ from model import GPT2
 from dataset import DataHandler
 import config
 import torch.nn as nn
+import time
 
 
 class Trainer():
@@ -39,6 +40,10 @@ class Trainer():
         tracked_losses = []
         tracked_steps = []
         step = 0
+        
+        # Track timing
+        start_time = time.time()
+        last_100_time = start_time
 
         print("Starting training...")
         while step < config.STEPS:
@@ -76,10 +81,27 @@ class Trainer():
                 tracked_steps.append(step)
 
             if step % 100 == 0:
-                print(f"Step {step} | Loss: {loss.item():.4f}")
+                current_time = time.time()
+                elapsed_100 = current_time - last_100_time
+                steps_remaining = config.STEPS - step
+                estimated_total_time = (elapsed_100 / 100) * steps_remaining
+                hours = int(estimated_total_time // 3600)
+                minutes = int((estimated_total_time % 3600) // 60)
+                seconds = int(estimated_total_time % 60)
+                
+                print(f"Step {step} | Loss: {loss.item():.4f} | Time for last 100 steps: {elapsed_100:.2f}s | Est. time remaining: {hours}h {minutes}m {seconds}s")
+                last_100_time = current_time
 
             step += 1
 
+        # Print total training time
+        total_time = time.time() - start_time
+        hours = int(total_time // 3600)
+        minutes = int((total_time % 3600) // 60)
+        seconds = int(total_time % 60)
+        print(f"\nTraining completed! Total time: {hours}h {minutes}m {seconds}s")
+
+        # Save the model
         model_to_save = model.module if hasattr(model, 'module') else model
         torch.save(model_to_save.state_dict(), 'data/my_model_openweb2.pth')
 
