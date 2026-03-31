@@ -7,5 +7,4 @@ NUM_LAYERS = 12       # Number of transformer blocks
 ATTENTION_DROP = 0.1
 RESID_DROP = 0.1
 LEARNING_RATE = 3e-4
-VOCAB_SIZE = 750
 STEPS = 5000

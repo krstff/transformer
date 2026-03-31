@@ -25,13 +25,15 @@ class Trainer():
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        model = GPT2(self.data_handler.get_vocab_size()).to(device)
+        model = GPT2(self.vocab_size).to(device)
 
         if torch.cuda.device_count() > 1:
             print(f"Using {torch.cuda.device_count()} GPUs!")
             model = nn.DataParallel(model)
 
         optimizer = torch.optim.AdamW(model.parameters(), lr=config.LEARNING_RATE)
+        dataloader_iter = iter(self.dataloader) if hasattr(self, 'dataloader') else None
+
 
         # Track loss for matplotlib
         tracked_losses = []
@@ -75,6 +77,8 @@ class Trainer():
 
             if step % 100 == 0:
                 print(f"Step {step} | Loss: {loss.item():.4f}")
+
+            step += 1
 
         model_to_save = model.module if hasattr(model, 'module') else model
         torch.save(model_to_save.state_dict(), 'data/my_model_openweb2.pth')

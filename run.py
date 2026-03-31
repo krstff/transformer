@@ -4,7 +4,7 @@ from model import GPT2
 import config
 
 def train(filename, tokenizer):
-    trainer = Trainer(filename, tokenizer, True, True)
+    trainer = Trainer(filename, tokenizer, True)
     trainer.train()
 
 def load_model(vocab_size, filename) -> GPT2:
