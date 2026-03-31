@@ -58,7 +58,7 @@ class LanceDataset(Dataset):
         self.block_size = block_size
 
         # Doing this so the sampler never asks for an index at the end of text
-        self.length = self.ds.count_rows() - block_size
+        self.length = self.ds.count_rows() - (block_size + 1)
 
     def __len__(self):
         return self.length
@@ -68,10 +68,13 @@ class LanceDataset(Dataset):
         Generate a window of indices starting from the current idx to idx+block_size
         and return the tokens at those indices
         """
-        window = np.arange(idx, idx + self.block_size)
+        window = np.arange(idx, idx + self.block_size + 1)
         sample = from_indices(self.ds, window)
+        
+        x = sample[:-1]
+        y = sample[1:]
 
-        return {"input_ids": torch.tensor(sample), "labels": torch.tensor(sample)}
+        return {"input_ids": torch.tensor(x), "labels": torch.tensor(y)}
 
 class LanceSampler(Sampler):
     r"""Samples tokens randomly but `block_size` indices apart.
