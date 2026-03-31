@@ -37,3 +37,57 @@ class DataHandler():
 
     def get_vocab_size(self):
         return self.enc.n_vocab
+
+
+# Sample lance loader https://lance.org/examples/python/llm_training/#imports-and-setup
+def from_indices(dataset, indices):
+    """Load the elements on given indices from the dataset"""
+    chunk = dataset.take(indices).to_pylist()
+    chunk = list(map(lambda x: x['input_ids'], chunk))
+    return chunk
+
+class LanceDataset(Dataset):
+    def __init__(
+        self,
+        dataset_path,
+        block_size,
+    ):
+        # Load the lance dataset from the saved path
+        self.ds = lance.dataset(dataset_path)
+        self.block_size = block_size
+
+        # Doing this so the sampler never asks for an index at the end of text
+        self.length = self.ds.count_rows() - block_size
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, idx):
+        """
+        Generate a window of indices starting from the current idx to idx+block_size
+        and return the tokens at those indices
+        """
+        window = np.arange(idx, idx + self.block_size)
+        sample = from_indices(self.ds, window)
+
+        return {"input_ids": torch.tensor(sample), "labels": torch.tensor(sample)}
+
+class LanceSampler(Sampler):
+    r"""Samples tokens randomly but `block_size` indices apart.
+
+    Args:
+        data_source (Dataset): dataset to sample from
+        block_size (int): minimum index distance between each random sample
+    """
+
+    def __init__(self, data_source, block_size=512):
+        self.data_source = data_source
+        self.num_samples = len(self.data_source)
+        self.available_indices = list(range(0, self.num_samples, block_size))
+        np.random.shuffle(self.available_indices)
+
+    def __iter__(self):
+        yield from self.available_indices
+
+    def __len__(self) -> int:
+        return len(self.available_indices)
