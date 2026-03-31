@@ -2,6 +2,7 @@ from train import Trainer
 import torch, tiktoken
 from model import GPT2
 import config
+import argparse
 
 def train(filename, tokenizer):
     trainer = Trainer(filename, tokenizer, True)
@@ -26,8 +27,33 @@ def generate(model, tokenizer, prompt="", max_tokens=50):
     print(output_text)
     
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    
+    # Subcommands or Flags
+    parser.add_argument("--mode", type=str, choices=["train", "gen"], required=True, 
+                        help="Choose 'train' to train the model or 'gen' to generate text.")
+    
+    # Arguments for Generation
+    parser.add_argument("--prompt", type=str, default="Once upon a time", 
+                        help="The starting text for generation.")
+    parser.add_argument("--tokens", type=int, default=50, 
+                        help="Number of tokens to generate.")
+    parser.add_argument("--weights", type=str, default="data/my_model_openweb.pth", 
+                        help="Path to the saved model weights.")
+    
+    # Arguments for Training
+    parser.add_argument("--data", type=str, default="data/openwebtext_1M.lance/", 
+                        help="Path to the training data.")
+
+    args = parser.parse_args()
     tokenizer = tiktoken.get_encoding("gpt2")
-    # model = load_model(tokenizer.n_vocab, 'data/my_model_openweb2.pth')
-    # generate(model, tokenizer, "There is no way")
-    train('data/openwebtext_1M.lance/', tokenizer)
+
+    if args.mode == "train":
+        print(f"Starting training using data: {args.data}")
+        train(args.data, tokenizer)
+        
+    elif args.mode == "gen":
+        print(f"Loading model from {args.weights}...")
+        model = load_model(tokenizer.n_vocab, args.weights)
+        generate(model, tokenizer, prompt=args.prompt, max_tokens=args.tokens)
 
