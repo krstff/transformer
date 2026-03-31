@@ -1,6 +1,8 @@
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+from dataset import DataHandler, LanceDataset, LanceSampler
+from torch.utils.data import DataLoader
 from model import GPT2
 from dataset import DataHandler
 import config
@@ -8,8 +10,17 @@ import torch.nn as nn
 
 
 class Trainer():
-    def __init__(self, filename, tokenizer, is_lance=False, is_pretokenized=False):
-        self.data_handler = DataHandler(filename, tokenizer)
+    def __init__(self, filename, tokenizer, is_lance=False):
+        if is_lance:
+            # Assume filename is the path to the Lance dataset
+            self.dataset = LanceDataset(filename, block_size=config.BLOCK_SIZE)
+            self.sampler = LanceSampler(self.dataset, block_size=config.BLOCK_SIZE)
+            self.dataloader = DataLoader(self.dataset, batch_size=config.BATCH_SIZE, sampler=self.sampler, shuffle=False)
+            self.vocab_size = tokenizer.n_vocab
+        else:
+            self.data_handler = DataHandler(filename, tokenizer)
+            self.vocab_size = self.data_handler.get_vocab_size()
+
 
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -25,11 +36,25 @@ class Trainer():
         # Track loss for matplotlib
         tracked_losses = []
         tracked_steps = []
+        step = 0
 
         print("Starting training...")
-        for step in range(config.STEPS):
-            xb, yb = self.data_handler.get_batch()
-            xb, yb = xb.to(device), yb.to(device)
+        while step < config.STEPS:
+            # using lance loader
+            if hasattr(self, 'dataloader'):
+                try:
+                    batch = next(dataloader_iter)
+                    xb = batch['input_ids'].to(device)
+                    yb = batch['labels'].to(device)
+                except StopIteration:
+                    # Restart dataloader for multiple epochs if needed
+                    dataloader_iter = iter(self.dataloader)
+                    batch = next(dataloader_iter)
+                    xb = batch['input_ids'].to(device)
+                    yb = batch['labels'].to(device)
+            else:
+                xb, yb = self.data_handler.get_batch()
+                xb, yb = xb.to(device), yb.to(device)
 
             # Decrease the precision to speed up training and allow for bigger batch size
             with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
