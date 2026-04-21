@@ -106,7 +106,7 @@ class Trainer():
 
         # Save the model
         model_to_save = model.module if hasattr(model, 'module') else model
-        torch.save(model_to_save.state_dict(), 'data/my_model_openweb2.pth')
+        torch.save(model_to_save.state_dict(), 'data/haiku_finetuned.pth')
 
         # matplotlib save training_loss_graph
         plt.figure(figsize=(10, 5))

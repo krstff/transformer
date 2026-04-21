@@ -154,7 +154,7 @@ class GPT2(nn.Module):
     
     # PyTorch will not track gradients for generation
     @torch.no_grad() 
-    def generate(self, idx, max_new_tokens):
+    def generate(self, idx, max_new_tokens, eot_token_id=50256):
         for _ in range(max_new_tokens):
             # crop context to BLOCK_SIZE -- eg. context window
             idx_cond = idx[:, -config.BLOCK_SIZE:]
@@ -168,6 +168,11 @@ class GPT2(nn.Module):
             
             # sample from the distribution
             idx_next = torch.multinomial(probs, num_samples=1)
+
+            # stop if we hit <|endoftext|>
+            if idx_next.item() == eot_token_id:
+                break
+
             idx = torch.cat((idx, idx_next), dim=1)
             
         return idx
