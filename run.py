@@ -4,8 +4,8 @@ from model import GPT2
 import config
 import argparse
 
-def train(filename, tokenizer):
-    trainer = Trainer(filename, tokenizer, True)
+def train(filename, tokenizer, output_path):
+    trainer = Trainer(filename, tokenizer, True, output_path)
     trainer.train()
 
 def load_model(vocab_size, filename) -> GPT2:
@@ -46,13 +46,15 @@ if __name__ == "__main__":
     # Arguments for Training
     parser.add_argument("--data", type=str, default="data/openwebtext_1M.lance/", 
                         help="Path to the training data.")
+    parser.add_argument("--output", type=str, default="data/model.pth", 
+                        help="Path to save the trained model weights.")
 
     args = parser.parse_args()
     tokenizer = tiktoken.get_encoding("gpt2")
 
     if args.mode == "train":
         print(f"Starting training using data: {args.data}")
-        train(args.data, tokenizer)
+        train(args.data, tokenizer, args.output)
         
     elif args.mode == "gen":
         print(f"Loading model from {args.weights}...")
