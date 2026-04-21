@@ -6,5 +6,7 @@ NUM_HEADS = 8         # Number of attention heads
 NUM_LAYERS = 10       # Number of transformer blocks
 ATTENTION_DROP = 0.0
 RESID_DROP = 0.0
-LEARNING_RATE = 3e-4
-STEPS = 10_000
+
+# Finetuning
+LEARNING_RATE = 5e-5
+STEPS = 3_000

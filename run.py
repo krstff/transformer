@@ -40,6 +40,8 @@ if __name__ == "__main__":
                         help="Number of tokens to generate.")
     parser.add_argument("--weights", type=str, default="data/my_model_openweb.pth", 
                         help="Path to the saved model weights.")
+    parser.add_argument("--times", type=int, default=1, 
+                        help="Number of times to run the generation prompt.")
     
     # Arguments for Training
     parser.add_argument("--data", type=str, default="data/openwebtext_1M.lance/", 
@@ -55,5 +57,6 @@ if __name__ == "__main__":
     elif args.mode == "gen":
         print(f"Loading model from {args.weights}...")
         model = load_model(tokenizer.n_vocab, args.weights)
-        generate(model, tokenizer, prompt=args.prompt, max_tokens=args.tokens)
+        for i in range(args.times):
+            generate(model, tokenizer, prompt=args.prompt, max_tokens=args.tokens)
 
