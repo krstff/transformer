@@ -1,12 +1,58 @@
 # GPT-2 Implementation (PyTorch)
 
+## Custom GPT-2: From Scratch to Poetry
+A fully custom, from-scratch implementation of a Transformer language model. This repository contains the complete pipeline for streaming massive datasets, pre-training a 35-million parameter language model on raw internet text, and fine-tuning it for style mimicry (Haikus)—all engineered to run locally on consumer hardware.
+
 ## Overview
+Instead of relying on high-level wrapper libraries, this project implements the core mechanics of Large Language Model training. The goal was to build a highly memory-efficient, mathematically stable pipeline capable of training a custom GPT-2 architecture on a RTX 3060 (12GB) GPU without Out-Of-Memory (OOM) crashes.
 
-Rather than relying on high-level pre-packaged layers like `nn.Transformer`, this project implements the core components at the tensor/matrix-math level. It features custom implementations of:
+## What Was Implemented
+Custom GPT-2 Architecture: Built entirely in PyTorch, featuring a 512-token context window, 8 attention heads, and 10 transformer blocks (approx. 35M parameters).
 
-* Multi-Head Causal Self-Attention
-* Transformer Blocks
-* Positional Embeddings
-* The training loop and text generation sequence
+Zero-Copy Data Streaming: Implemented a highly optimized disk-to-GPU data pipeline using lance and pyarrow. Bypassed standard Python memory bottlenecks to stream millions of tokens with a flat ~1GB System RAM footprint.
 
-Strongly inspired by: https://github.com/karpathy/minGPT
+Custom Training Loop: Built from the ground up, featuring:
+
+Gradient Clipping: Preventing explosive gradients during the volatile early stages of training.
+
+Mixed Precision (bfloat16): Thread-safe implementation of torch.autocast across multiple GPUs via nn.DataParallel.
+
+Automated Logging: Real-time ETA calculations, loss tracking, and automatic matplotlib loss curve generation.
+
+## The Training
+Phase 1: Pre-Training on the Open Web
+The model was initialized with completely random weights and pre-trained on a subset of OpenWebText.
+
+Dataset: [heyytanay/openwebtext-1m](https://www.kaggle.com/datasets/heyytanay/openwebtext-1m)
+
+Objective: Next-token prediction to learn fundamental English grammar, spelling, and sentence structure.
+
+Duration: ~100,000 steps (approx. 3.2 Billion tokens).
+
+Hardware: Nvidia RTX 3060 (12GB VRAM).
+
+Result: Reached a stable Cross-Entropy loss of ~3.75. The model successfully learned to form coherent *-ish*, grammatically correct paragraphs from scratch.
+
+Phase 2: Fine-Tuning (Style Mimicry)
+Because a 35M parameter model lacks the capacity to store factual world knowledge, it was fine-tuned for style mimicry.
+
+Dataset: [statworx/haiku](https://huggingface.co/datasets/statworx/haiku)
+
+Process: The dataset was tokenized, appended with <|endoftext|> delimiters, and compiled into a Lance database. The pre-trained model was loaded and fine-tuned with a severely reduced learning rate (5e-5).
+
+Result: The model successfully overfit to the 5-7-5 syllable structure, generating novel, grammatically correct haikus.
+
+## Model Weights
+The final trained weights are too large for GitHub, but you can download them directly from Hugging Face and plug them into the generation script!
+
+👉 [Weights available on Hugging Face](https://huggingface.co/krstff/gpt2)
+
+## Lessons Learned & Engineering Challenges
+
+The implementation itself eg. using blocks to build the entire network, multi-headed masked self attention, the headache of rotating and transforming matrices.
+
+Python List RAM issue: Initially attempted to load a pre-tokenized 1-billion token dataset using standard Python lists, which ballooned a 8GB dataset into over 36GB of RAM, crashing the system. Fixed by keeping data in raw Arrow arrays and streaming it directly to PyTorch tensors.
+
+The "Open Book" Label Bug: Discovered that failing to explicitly slice and shift inputs (x = batch[:, :-1]) and targets (y = batch[:, 1:]) in the dataloader allows the attention mechanism to look at the answer, causing the loss to artificially plummet to near-zero.
+
+Multi-GPU computation: initially I wanted to make use of two RTX 3060s, but because the lanes on my motherboard are slow (16x 4x) and some other issues showed up with mixed precision. I decided to stick to a single GPU. The code is still 'ready' for multiple GPUs (nn.DataParallel), but a global torch.autocast wrapping is needed.
