@@ -9,4 +9,4 @@ RESID_DROP = 0.0
 
 # Finetuning
 LEARNING_RATE = 5e-5
-STEPS = 3_000
+STEPS = 5_000
