@@ -11,7 +11,8 @@ import time
 
 
 class Trainer():
-    def __init__(self, filename, tokenizer, is_lance=False):
+    def __init__(self, filename, tokenizer, is_lance=False, output_path="data/model.pth"):
+        self.output_path = output_path
         if is_lance:
             # Assume filename is the path to the Lance dataset
             self.dataset = LanceDataset(filename, block_size=config.BLOCK_SIZE)
@@ -106,7 +107,7 @@ class Trainer():
 
         # Save the model
         model_to_save = model.module if hasattr(model, 'module') else model
-        torch.save(model_to_save.state_dict(), 'data/my_model_openweb2.pth')
+        torch.save(model_to_save.state_dict(), self.output_path)
 
         # matplotlib save training_loss_graph
         plt.figure(figsize=(10, 5))

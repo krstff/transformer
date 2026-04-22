@@ -154,7 +154,7 @@ class GPT2(nn.Module):
     
     # PyTorch will not track gradients for generation
     @torch.no_grad() 
-    def generate(self, idx, max_new_tokens):
+    def generate(self, idx, max_new_tokens, eot_token_id=50256, temperature=0.8, top_k=50):
         for _ in range(max_new_tokens):
             # crop context to BLOCK_SIZE -- eg. context window
             idx_cond = idx[:, -config.BLOCK_SIZE:]
@@ -164,10 +164,23 @@ class GPT2(nn.Module):
             # multiple predictions get made, we only care about the last new -- eg. the new word
             # fixed by KV-caching
             logits = logits[:, -1, :]
+
+            logits = logits / temperature
+
             probs = torch.nn.functional.softmax(logits, dim=-1)
+            
+            # apply top-k to avoid highly unlikely words
+            if top_k is not None:
+                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
+                logits[logits < v[:, [-1]]] = -float('Inf')
             
             # sample from the distribution
             idx_next = torch.multinomial(probs, num_samples=1)
+
+            # stop if we hit <|endoftext|>
+            if idx_next.item() == eot_token_id:
+                break
+
             idx = torch.cat((idx, idx_next), dim=1)
             
         return idx
