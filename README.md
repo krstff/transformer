@@ -33,6 +33,8 @@ Hardware: Nvidia RTX 3060 (12GB VRAM).
 
 Result: Reached a stable Cross-Entropy loss of ~3.75. The model successfully learned to form coherent *-ish*, grammatically correct paragraphs from scratch.
 
+![train_loss](graphs/training_loss_graph_pretrain.png)
+
 Phase 2: Fine-Tuning (Style Mimicry)
 Because a 35M parameter model lacks the capacity to store factual world knowledge, it was fine-tuned for style mimicry.
 
@@ -41,6 +43,8 @@ Dataset: [statworx/haiku](https://huggingface.co/datasets/statworx/haiku)
 Process: The dataset was tokenized, appended with <|endoftext|> delimiters, and compiled into a Lance database. The pre-trained model was loaded and fine-tuned with a severely reduced learning rate (5e-5).
 
 Result: The model successfully overfit to the 5-7-5 syllable structure, generating novel, grammatically correct haikus.
+
+![haiku_loss](graphs/training_loss_graph_haiku.png)
 
 ## Model Weights
 The final trained weights are too large for GitHub, but you can download them directly from Hugging Face and plug them into the generation script!
@@ -56,3 +60,5 @@ Python List RAM issue: Initially attempted to load a pre-tokenized 1-billion tok
 The "Open Book" Label Bug: Discovered that failing to explicitly slice and shift inputs (x = batch[:, :-1]) and targets (y = batch[:, 1:]) in the dataloader allows the attention mechanism to look at the answer, causing the loss to artificially plummet to near-zero.
 
 Multi-GPU computation: initially I wanted to make use of two RTX 3060s, but because the lanes on my motherboard are slow (16x 4x) and some other issues showed up with mixed precision. I decided to stick to a single GPU. The code is still 'ready' for multiple GPUs (nn.DataParallel), but a global torch.autocast wrapping is needed.
+
+Strongly inspired by: https://github.com/karpathy/minGPT
