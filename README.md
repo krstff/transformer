@@ -9,20 +9,21 @@ Instead of relying on high-level wrapper libraries, this project implements the 
 ## Output example
 
 ### Pre-trained
-'''sh
+```sh
 python run.py --mode gen --prompt "Before we" --weights "data/pretrain.pth" --tokens 50
-'''
-'''
+```
+
+```
 Before we begin, we should put our heads up the stairs.”
 
 One of the best moments in the film is the curvature of his red disk. The most noticeable difference is the crystal ball of the disc, which is bow-like in
-'''
+```
 
 ### Finetuned on haiku dataset
-'''sh
+```sh
 python run.py --mode gen --prompt "The" --weights "data/haiku.pth" --times 10
-'''
-'''
+```
+```
 The summer Master. / To the will play us. / For meadow shape.
 The city. / Fail of the milkzing. / And she loved him down.
 The wind and heart. / If they love me food. / In the same rain.
@@ -33,7 +34,7 @@ The even love. / And what a computer she saw. / To a mother.
 The long night. / Winter sunlight remains. / Just rooted at the window.
 The wind. / To be more. / To the ice.
 The reddness. / Behind the old lights. / Sim down the chimes.
-'''
+```
 
 ## What Was Implemented
 Custom GPT-2 Architecture: Built entirely in PyTorch, featuring a 512-token context window, 8 attention heads, and 10 transformer blocks (approx. 83M parameters).
@@ -51,11 +52,11 @@ Automated Logging: Real-time ETA calculations, loss tracking, and automatic matp
 ## The Training
 
 Both pre-training and finetuning has been done using the same train command.
-'''sh
+```sh
 python -u run.py --mode train \
     --data data/haiku_dataset.lance \
     --output data/haiku.pth >> log2.txt 2>&1
-'''
+```
 
 Phase 1: Pre-Training on the Open Web
 The model was initialized with completely random weights and pre-trained on a subset of OpenWebText.
