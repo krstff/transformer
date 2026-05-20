@@ -24,10 +24,12 @@ class Trainer():
             self.vocab_size = self.data_handler.get_vocab_size()
 
 
-    def train(self):
+    def train(self, model=None):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        model = GPT2(self.vocab_size).to(device)
+        if not model:
+            model = GPT2(self.vocab_size).to(device)
+
         total_params = sum(p.numel() for p in model.parameters())
         print(f"Total model parameters: {total_params:,}")
 

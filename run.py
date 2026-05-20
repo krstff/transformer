@@ -8,6 +8,10 @@ def train(filename, tokenizer, output_path):
     trainer = Trainer(filename, tokenizer, True, output_path)
     trainer.train()
 
+def finetune(filename, tokenizer, output_path, model):
+    trainer = Trainer(filename, tokenizer, True, output_path)
+    trainer.train(model)
+
 def load_model(vocab_size, filename) -> GPT2:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = GPT2(vocab_size).to(device)
@@ -30,8 +34,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
     # Subcommands or Flags
-    parser.add_argument("--mode", type=str, choices=["train", "gen"], required=True, 
-                        help="Choose 'train' to train the model or 'gen' to generate text.")
+    parser.add_argument("--mode", type=str, choices=["train", "gen", "finetune"], required=True, 
+                        help="Choose 'train' to train the model, 'gen' to generate text or 'finetune' to finetune a pretrained model.")
     
     # Arguments for Generation
     parser.add_argument("--prompt", type=str, default="Once upon a time", 
@@ -43,7 +47,7 @@ if __name__ == "__main__":
     parser.add_argument("--times", type=int, default=1, 
                         help="Number of times to run the generation prompt.")
     
-    # Arguments for Training
+    # Arguments for Training/Finetune
     parser.add_argument("--data", type=str, default="data/openwebtext_1M.lance/", 
                         help="Path to the training data.")
     parser.add_argument("--output", type=str, default="data/model.pth", 
@@ -61,4 +65,12 @@ if __name__ == "__main__":
         model = load_model(tokenizer.n_vocab, args.weights)
         for i in range(args.times):
             generate(model, tokenizer, prompt=args.prompt, max_tokens=args.tokens)
+
+    elif args.mode == "finetune":
+        if args.weights:
+            model = load_model(tokenizer.n_vocab, args.weights)
+            finetune(args.data, tokenizer, args.output, model)
+        else:
+            print("No model weights were provided. Use --weights.")
+
 
