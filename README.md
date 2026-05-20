@@ -1,10 +1,37 @@
 # GPT-2 Implementation (PyTorch)
 
-## Custom GPT-2: From Scratch to Poetry
-A fully custom, from-scratch implementation of a Transformer language model. This repository contains the complete pipeline for streaming massive datasets, pre-training a 83-million parameter language model on raw internet text, and fine-tuning it for style mimicry (Haikus)—all engineered to run locally on consumer hardware.
+## How to run
 
-## Overview
-Instead of relying on high-level wrapper libraries, this project implements the core mechanics of Large Language Model training. The goal was to build a highly memory-efficient, mathematically stable pipeline capable of training a custom GPT-2 architecture on a RTX 3060 (12GB) GPU without Out-Of-Memory (OOM) crashes.
+I recommend using a different python env
+```sh
+# Conda
+conda create -n gpt2 python=3.13 -y
+conda activate gpt2
+python -m pip install -r requirements.txt
+
+# or venv
+python -m venv gpt2
+source gpt2/bin/activate
+python -m pip install -r requirements.txt
+```
+### Generation
+Download the model weights (pretrain.pth) and place them into the data/ directory. [Weights available on Hugging Face](https://huggingface.co/krstff/gpt2/tree/main)
+```sh
+python run.py --mode gen --prompt "Before we" --weights "data/pretrain.pth" --tokens 50
+```
+
+### Training
+Download the dataset into the data/ directory. [heyytanay/openwebtext-1m](https://www.kaggle.com/datasets/heyytanay/openwebtext-1m) (make sure the dataset names match with the command) **Requires 12GB of VRAM**
+```sh
+python -u run.py --mode train \
+    --data data/openwebtext \
+    --output data/openwebtext_trained.pth >> log2.txt 2>&1
+```
+
+
+
+## Custom GPT-2
+A fully custom, from-scratch implementation of a Transformer language model. This repository contains the complete pipeline for streaming massive datasets, pre-training a 83-million parameter language model on raw internet text, and fine-tuning it for style mimicry (Haikus)—all engineered to run locally on consumer hardware.
 
 ## Output example
 
@@ -19,7 +46,7 @@ Before we begin, we should put our heads up the stairs.”
 One of the best moments in the film is the curvature of his red disk. The most noticeable difference is the crystal ball of the disc, which is bow-like in
 ```
 
-### Finetuned on haiku dataset
+### Pretrained on haiku dataset
 ```sh
 python run.py --mode gen --prompt "The" --weights "data/haiku.pth" --times 10
 ```
@@ -54,8 +81,8 @@ Automated Logging: Real-time ETA calculations, loss tracking, and automatic matp
 Both pre-training and finetuning has been done using the same train command.
 ```sh
 python -u run.py --mode train \
-    --data data/haiku_dataset.lance \
-    --output data/haiku.pth >> log2.txt 2>&1
+    --data data/openwebtext_1M.lance \
+    --output data/pretrain.pth >> log2.txt 2>&1
 ```
 
 Phase 1: Pre-Training on the Open Web
