@@ -31,7 +31,7 @@ python -u run.py --mode train \
 
 
 ## Custom GPT-2
-A fully custom, from-scratch implementation of a Transformer language model. This repository contains the complete pipeline for streaming massive datasets, pre-training a 83-million parameter language model on raw internet text, and fine-tuning it for style mimicry (Haikus)—all engineered to run locally on consumer hardware.
+A fully custom, from-scratch implementation of a Transformer language model. This repository contains the complete pipeline for streaming massive datasets, pre-training a 83-million parameter language model on raw internet text, and retraining it for style mimicry (Haikus)—all engineered to run locally on consumer hardware.
 
 ## Output example
 
@@ -78,7 +78,7 @@ Automated Logging: Real-time ETA calculations, loss tracking, and automatic matp
 
 ## The Training
 
-Both pre-training and finetuning has been done using the same train command.
+The training has been done using the train command.
 ```sh
 python -u run.py --mode train \
     --data data/openwebtext_1M.lance \
@@ -100,12 +100,12 @@ Result: Reached a stable Cross-Entropy loss of ~3.75. The model successfully lea
 
 ![train_loss](graphs/training_loss_graph_pretrain.png)
 
-Phase 2: Fine-Tuning (Style Mimicry)
-Because a 83M parameter model lacks the capacity to store factual world knowledge, it was fine-tuned for style mimicry.
+Phase 2: Retraining (Style Mimicry)
+Because a 83M parameter model lacks the capacity to store factual world knowledge, it was retrained for style mimicry.
 
 Dataset: [statworx/haiku](https://huggingface.co/datasets/statworx/haiku)
 
-Process: The dataset was tokenized, appended with <|endoftext|> delimiters, and compiled into a Lance database. The pre-trained model was loaded and fine-tuned with a severely reduced learning rate (5e-5).
+Process: The dataset was tokenized, appended with <|endoftext|> delimiters, and compiled into a Lance database. The pre-trained model was loaded and retrained with a severely reduced learning rate (5e-5).
 
 Result: The model successfully overfit to the 5-7-5 syllable structure, generating novel, grammatically correct haikus.
 
